@@ -80,9 +80,10 @@ public class EmployeeService implements IEmployeeService {
         if (employeeById == null) {
             throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Employee does exist for id: " + id);
         }
-        if(externalService.deleteEmployeeById(new DeleteEmployeeRequest(id))) {
+        if (externalService.deleteEmployeeById(new DeleteEmployeeRequest(id))) {
             employeeById.employeeName();
         }
-        throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete employee with id: " + id);
+        throw new HttpClientErrorException(
+                HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete employee with id: " + id);
     }
 }

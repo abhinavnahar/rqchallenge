@@ -133,8 +133,8 @@ public class ExternalService implements IExternalService {
                 ResponseEntity<DeleteEmployeeResponse> response =
                         restTemplate.exchange(baseUrl, HttpMethod.DELETE, requestEntity, DeleteEmployeeResponse.class);
                 if (response != null && response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                     logger.info("Request to delete employee with ID {} is successfull", id);
-                     return response.getBody().success();
+                    logger.info("Request to delete employee with ID {} is successfull", id);
+                    return response.getBody().success();
                 } else {
                     throw new ApiException(
                             "Failed to fetch all employees: " + response.getStatusCode(),
