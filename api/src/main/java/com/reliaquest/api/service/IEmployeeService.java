@@ -18,5 +18,5 @@ public interface IEmployeeService {
 
     Employee createEmployee(EmployeeRequest employee);
 
-    String deleteEmployeeById(UUID id);
+    String deleteEmployeeById(String id);
 }

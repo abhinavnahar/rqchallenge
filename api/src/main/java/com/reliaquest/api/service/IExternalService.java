@@ -1,5 +1,6 @@
 package com.reliaquest.api.service;
 
+import com.reliaquest.api.dto.DeleteEmployeeRequest;
 import com.reliaquest.api.dto.EmployeeRequest;
 import com.reliaquest.api.model.Employee;
 import java.util.List;
@@ -14,9 +15,9 @@ public interface IExternalService {
 
     int getHighestSalaryOfEmployees();
 
-    List<Employee> getTop10HighestEarningEmployeeNames();
+    List<String> getTop10HighestEarningEmployeeNames();
 
     Employee createEmployee(EmployeeRequest employee);
 
-    String deleteEmployeeById(UUID id);
+    boolean deleteEmployeeById(DeleteEmployeeRequest deleteEmployeeRequest);
 }

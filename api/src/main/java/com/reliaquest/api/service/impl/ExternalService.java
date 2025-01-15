@@ -1,11 +1,9 @@
 package com.reliaquest.api.service.impl;
 
-import com.reliaquest.api.dto.EmployeeRequest;
-import com.reliaquest.api.dto.EmployeeResponse;
-import com.reliaquest.api.dto.EmployeesResponse;
+import com.reliaquest.api.dto.*;
 import com.reliaquest.api.exceptions.ApiException;
 import com.reliaquest.api.model.Employee;
-import com.reliaquest.api.service.IEmployeeService;
+import com.reliaquest.api.service.IExternalService;
 import io.github.resilience4j.retry.Retry;
 import java.util.Comparator;
 import java.util.List;
@@ -15,6 +13,8 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class ExternalService implements IEmployeeService {
+public class ExternalService implements IExternalService {
 
     private static final Logger logger = LoggerFactory.getLogger(EmployeeService.class);
 
@@ -51,7 +51,7 @@ public class ExternalService implements IEmployeeService {
                 }
             } catch (HttpClientErrorException e) {
                 throw new ApiException(
-                        "Failed to fetch employee by ID: " + e.getMessage(),
+                        "Failed to fetch employee by ID: " + id.toString(),
                         e.getStatusCode().value());
             }
         });
@@ -124,13 +124,22 @@ public class ExternalService implements IEmployeeService {
     }
 
     @Override
-    public String deleteEmployeeById(UUID id) {
+    public boolean deleteEmployeeById(DeleteEmployeeRequest deleteEmployeeRequest) {
+        HttpEntity<DeleteEmployeeRequest> requestEntity = new HttpEntity<>(deleteEmployeeRequest);
+        String id = deleteEmployeeRequest.name();
         return executeWithRetry(() -> {
             logger.info("Deleting employee by ID: {}", id);
             try {
-                restTemplate.delete(baseUrl + "/" + id);
-                logger.info("Employee with ID {} deleted successfully", id);
-                return "Employee with ID " + id + " deleted successfully.";
+                ResponseEntity<DeleteEmployeeResponse> response =
+                        restTemplate.exchange(baseUrl, HttpMethod.DELETE, requestEntity, DeleteEmployeeResponse.class);
+                if (response != null && response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                     logger.info("Request to delete employee with ID {} is successfull", id);
+                     return response.getBody().success();
+                } else {
+                    throw new ApiException(
+                            "Failed to fetch all employees: " + response.getStatusCode(),
+                            response.getStatusCode().value());
+                }
             } catch (HttpClientErrorException e) {
                 throw new ApiException(
                         "Failed to delete employee: " + e.getMessage(),

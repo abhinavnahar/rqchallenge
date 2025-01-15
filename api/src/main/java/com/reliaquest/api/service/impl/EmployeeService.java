@@ -1,5 +1,6 @@
 package com.reliaquest.api.service.impl;
 
+import com.reliaquest.api.dto.DeleteEmployeeRequest;
 import com.reliaquest.api.dto.EmployeeRequest;
 import com.reliaquest.api.exceptions.ApiException;
 import com.reliaquest.api.model.Employee;
@@ -11,7 +12,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 @Service
 public class EmployeeService implements IEmployeeService {
@@ -27,7 +30,7 @@ public class EmployeeService implements IEmployeeService {
 
     @Override
     public Employee getEmployeeById(UUID id) {
-        logger.info("Calling external service to get employee id {}", id);
+        logger.info("Calling external service to get employee name {}", id);
         return externalService.getEmployeeById(id);
     }
 
@@ -71,8 +74,15 @@ public class EmployeeService implements IEmployeeService {
     }
 
     @Override
-    public String deleteEmployeeById(UUID id) {
-        logger.info("deleting employee by id:  {}", id);
-        return externalService.deleteEmployeeById(id);
+    public String deleteEmployeeById(String id) {
+        logger.info("deleting employee by name:  {}", id);
+        Employee employeeById = getEmployeeById(UUID.fromString(id));
+        if (employeeById == null) {
+            throw new HttpClientErrorException(HttpStatus.NOT_FOUND, "Employee does exist for id: " + id);
+        }
+        if(externalService.deleteEmployeeById(new DeleteEmployeeRequest(id))) {
+            employeeById.employeeName();
+        }
+        throw new HttpClientErrorException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to delete employee with id: " + id);
     }
 }
